@@ -5,3 +5,7 @@ go 1.21.3
 toolchain go1.21.4
 
 require github.com/AY7295/tsmap v1.0.0
+require (
+	github.com/AY7295/tsmap v1.0.0
+	github.com/Mmx233/tool v0.7.3
+)
