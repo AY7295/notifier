@@ -1,21 +1,32 @@
 package notifier
 
 import (
-	"fmt"
+	"github.com/AY7295/notifer/pkg/feishu"
+	"github.com/AY7295/notifer/shared"
 	"testing"
-	"time"
+)
+
+var (
+	app = shared.App{
+		Name:    "TestAppName",
+		Mobiles: []string{},
+	}
+	config = feishu.Config{
+		Lark: feishu.Lark{
+			ID:     "",
+			Secret: "",
+		},
+		NeedNotifyInGroup: true,
+	}
 )
 
 func TestInit(t *testing.T) {
-	tick := time.NewTicker(2 * time.Second)
-	tt := time.NewTicker(20 * time.Second)
-	fmt.Println(time.Now())
-	for {
-		select {
-		case <-tick.C:
-			t.Log("tick", time.Now())
-		case <-tt.C:
-			return
-		}
+	fsBuilder, err := feishu.NewNotifyBuilder(config)
+	if err != nil {
+		t.Error(err)
+		return
 	}
+
+	Global.Init(app, WithNotifier(shared.Error, fsBuilder.Build(shared.Error)))
+	Global.Notify(shared.Error, shared.NewInformation("TestError"))
 }

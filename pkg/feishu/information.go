@@ -1,6 +1,7 @@
 package feishu
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/AY7295/notifer/shared"
 	"strings"
@@ -24,25 +25,38 @@ type builder struct {
 	config *Config
 }
 
-func (b *builder) Build(level shared.Level) (shared.Notifier, error) {
+func (b *builder) Build(level shared.Level) shared.Notifier {
+	var (
+		userIds []string
+		chatIds []string
+		err     error
+	)
 	return notify(func(app *shared.App, info shared.Information) error {
-		err := b.config.refreshToken()
+		err = b.config.refreshToken()
 		if err != nil {
 			return err
 		}
 
-		ids, err := b.config.api.GetOpenIds(app.Notify.Phones, b.config.tenantAccessToken)
+		userIds, err = b.config.api.GetOpenIds(app.Mobiles)
 		if err != nil {
 			return err
 		}
 
-		b.config.api.SendCard()
+		if b.config.NeedNotifyInGroup {
+			chatIds, err = b.config.api.GetChatIds()
+			if err != nil {
+				return err
+			}
+		}
 
-		return nil
-	}), nil
+		return b.config.api.SendCard(
+			newCard(getTemplate(level), app.Name, level.String(), info.Format(), builderAt(userIds...)),
+			userIds, chatIds...,
+		)
+	})
 }
 
-func atBuilder(ids ...string) string {
+func builderAt(ids ...string) string {
 	ats := make([]string, 0, len(ids))
 	for _, id := range ids {
 		ats = append(ats, fmt.Sprintf("<at id=%s><at/>", id))
@@ -65,8 +79,20 @@ func getTemplate(level shared.Level) string {
 	}
 }
 
-const (
-	card = `
+func newCard(templateColor, appName, level, content, ats string) string {
+	return fmt.Sprintf(cardFormat, templateColor, appName, level, content, ats)
+}
+
+// init: just to escape the useless characters
+func init() {
+	var temp any
+	_ = json.Unmarshal([]byte(cardFormat), &temp)
+	bytes, _ := json.Marshal(temp)
+	cardFormat = string(bytes)
+}
+
+var (
+	cardFormat = `
 			{
 			  "header": {
 			    "template": "%s",
@@ -84,5 +110,5 @@ const (
 			    }
 			  ]
 			}
-			`
+	`
 )

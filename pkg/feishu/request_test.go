@@ -1,6 +1,7 @@
 package feishu
 
 import (
+	"errors"
 	"github.com/AY7295/notifer/shared"
 	"testing"
 )
@@ -8,11 +9,15 @@ import (
 var (
 	config = &Config{
 		Lark: Lark{
-			ID:     "cli_a381acfe9ff99013",
-			Secret: "ey3WcQNlnTi3YOr2b0cifdow3AiHOZU8",
+			ID:     "",
+			Secret: "",
 		},
+		NeedNotifyInGroup: false,
 	}
-	phones = shared.Phones{Mobiles: []string{"18980710863", "13535814223"}}
+	app = &shared.App{
+		Name:    "TestApp",
+		Mobiles: []string{""},
+	}
 )
 
 func TestMain(m *testing.M) {
@@ -25,21 +30,18 @@ func TestMain(m *testing.M) {
 }
 
 func Test_api_GetToken(t *testing.T) {
-	api := newApi()
-
-	token, expire, err := api.GetToken(config.Lark)
+	err := config.api.refreshToken(config.Lark)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	t.Log(token)
-	t.Log(expire)
+	t.Log(config.api.auth)
+	t.Log(config.api.expire)
 
 }
 
 func Test_api_GetChatIds(t *testing.T) {
-	api := newApi()
-	chatIds, err := api.GetChatIds(config.tenantAccessToken)
+	chatIds, err := config.api.GetChatIds()
 	if err != nil {
 		t.Error(err)
 		return
@@ -48,11 +50,40 @@ func Test_api_GetChatIds(t *testing.T) {
 }
 
 func Test_api_GetOpenIds(t *testing.T) {
-	api := newApi()
-	openIds, err := api.GetOpenIds(phones, config.tenantAccessToken)
+	openIds, err := config.api.GetOpenIds(app.Mobiles)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	t.Log(openIds)
+}
+
+func Test_api_SendCard(t *testing.T) {
+	var (
+		userIds []string
+		chatIds []string
+		err     error
+		info    = shared.NewInformation("TestError", shared.WithErrors(errors.New("error1"), errors.New("error2")))
+	)
+
+	userIds, err = config.api.GetOpenIds(app.Mobiles)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	chatIds, err = config.api.GetChatIds()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	ss := info.Format()
+	t.Log(ss)
+	err = config.api.SendCard(
+		newCard(getTemplate(shared.Error), app.Name, shared.Error.String(), ss, builderAt(userIds...)),
+		userIds, chatIds...,
+	)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 }

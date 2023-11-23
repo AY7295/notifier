@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/AY7295/notifer/shared"
 	"github.com/AY7295/tsmap"
+	"reflect"
 	"sync"
 )
 
@@ -16,13 +17,13 @@ func Init(app shared.App, opts ...Option) {
 type Option func(*hub)
 
 type hub struct {
-	sync.Once
+	once      sync.Once
 	app       *shared.App
 	notifiers tsmap.TSMap[shared.Level, []shared.Notifier]
 }
 
 func (h *hub) Init(app shared.App, opts ...Option) {
-	h.Do(func() {
+	h.once.Do(func() {
 		h.app = &app
 		h.notifiers = tsmap.New[shared.Level, []shared.Notifier]()
 		for _, opt := range opts {
@@ -32,6 +33,13 @@ func (h *hub) Init(app shared.App, opts ...Option) {
 }
 
 func (h *hub) Notify(level shared.Level, info shared.Information) error {
+	if h.app == nil {
+		panic("notifier not init")
+	}
+	if reflect.ValueOf(info).IsNil() {
+		return errors.New("info must not be nil")
+	}
+
 	notifiers, ok := h.notifiers.Get(level)
 	if !ok {
 		return errors.New("no notifier for level: " + level.String())
@@ -45,7 +53,7 @@ func (h *hub) Notify(level shared.Level, info shared.Information) error {
 	return errors.Join(errs...)
 }
 
-func WithNotifier(level shared.Level, notifiers []shared.Notifier) Option {
+func WithNotifier(level shared.Level, notifiers ...shared.Notifier) Option {
 	return func(h *hub) {
 		if len(notifiers) != 0 {
 			h.notifiers.Set(level, notifiers)

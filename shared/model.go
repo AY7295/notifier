@@ -5,38 +5,13 @@ import (
 	"github.com/AY7295/tsmap"
 )
 
-type (
-	Level int
+type App struct {
+	Name    string
+	Mobiles []string
+	Emails  []string
+}
 
-	App struct {
-		Name   string
-		Notify Notify
-	}
-
-	Notify struct {
-		Phones Phones
-		Mails  Mails
-	}
-
-	Phones struct {
-		Mobiles []string `json:"mobiles"`
-	}
-	Mails struct {
-		Emails []string
-	}
-
-	Notifier interface {
-		Notify(*App, Information) error
-	}
-
-	NotifyBuilder interface {
-		Build(Level) (Notifier, error)
-	}
-
-	Information interface {
-		Format() string
-	}
-)
+type Level int
 
 var (
 	levels = func() tsmap.TSMap[Level, string] {
