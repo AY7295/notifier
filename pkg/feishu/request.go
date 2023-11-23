@@ -34,11 +34,17 @@ func newApi() *api {
 			}),
 			Timeout: timeout,
 		})),
+		auth: make(map[string]any),
 	}
 }
 
 type api struct {
+	// client: the http-client of the api
 	client *tool.Http
+	// auth: the tenantAccessToken of the lark-bot, need to be refreshed every 2 hours
+	auth map[string]any
+	// expire: the expiring time of the auth
+	expire time.Time
 }
 
 func (a *api) GetOpenIds(phones shared.Phones, tenantAccessToken string) ([]string, error) {
@@ -111,17 +117,28 @@ func (a *api) GetToken(app Lark) (string, time.Duration, error) {
 		Body: app,
 	})
 	if err != nil {
-		return "", 0, err
+		return err
+	}
+	if code, ok := response["code"].(float64); !ok || code != 0 {
+		return failedRequest(response)
 	}
 
-	token, ok := body["tenant_access_token"].(string)
+	token, ok := response["tenant_access_token"].(string)
+	if !ok {
+		return newApiUrlError(getTokenUrl)
+	}
+	a.auth["Authorization"] = "Bearer " + token
+
+	expire, ok := response["expire"].(float64)
 	if !ok {
 		return "", 0, newApiUrlError(getTokenUrl)
+		return newApiUrlError(getTokenUrl)
 	}
 
-	expire, ok := body["expire"].(float64)
-	if !ok {
-		return "", 0, newApiUrlError(getTokenUrl)
+	a.expire = time.Now().Add(time.Duration(expire) * time.Second)
+	return nil
+}
+
 	}
 
 	return token, time.Duration(expire) * time.Second, nil

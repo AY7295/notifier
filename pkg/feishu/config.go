@@ -11,10 +11,6 @@ type Config struct {
 	NeedNotifyInGroup bool
 	// api: the apis of feishu
 	api *api
-	// tenantAccessToken: the access-token of the lark-api, need to be refreshed every 2 hours
-	tenantAccessToken string
-	// expire: the expiring time of the tenantAccessToken
-	expire time.Time
 }
 
 type Lark struct {
@@ -28,16 +24,8 @@ func (c *Config) Init() error {
 }
 
 func (c *Config) refreshToken() error {
-	if c.expire.Sub(time.Now()) > 5*time.Minute {
+	if c.api.expire.Sub(time.Now()) > 5*time.Minute {
 		return nil
 	}
-	token, expire, err := c.api.GetToken(c.Lark)
-	if err != nil {
-		return err
-	}
-
-	c.tenantAccessToken = "Bearer " + token
-	c.expire = time.Now().Add(expire)
-
-	return nil
+	return c.api.refreshToken(c.Lark)
 }
