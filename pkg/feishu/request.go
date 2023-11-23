@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+/*
+* [https://open.feishu.cn/document/server-docs/api-call-guide/calling-process/overview] here contains all the apis of lark
+**/
 const (
 	timeout          = 10 * time.Second
 	getChatIdsUrl    = "https://open.feishu.cn/open-apis/im/v1/chats"
@@ -51,7 +54,7 @@ type api struct {
 	expire time.Time
 }
 
-func (a *api) GetOpenIds(phones []string) ([]string, error) {
+func (a *api) getOpenIds(phones []string) ([]string, error) {
 	_, response, err := a.client.Post(&tool.DoHttpReq{
 		Url:    getUserOpenIdUrl,
 		Header: a.auth,
@@ -93,7 +96,7 @@ func (a *api) GetOpenIds(phones []string) ([]string, error) {
 	return ids, nil
 }
 
-func (a *api) GetChatIds() ([]string, error) {
+func (a *api) getChatIds() ([]string, error) {
 	_, response, err := a.client.Get(&tool.DoHttpReq{
 		Url:    getChatIdsUrl,
 		Header: a.auth,
@@ -166,7 +169,7 @@ var (
 	}
 )
 
-func (a *api) SendCard(card string, userIds []string, chatIds ...string) error {
+func (a *api) sendCard(card string, userIds []string, chatIds ...string) error {
 	log.Println(card)
 	cardMessageBody.Content = card
 	var errs []error

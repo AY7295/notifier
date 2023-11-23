@@ -7,7 +7,7 @@ import (
 
 type App struct {
 	Name    string
-	Mobiles []string
+	Mobiles []string // feishu-open_id required
 	Emails  []string
 }
 

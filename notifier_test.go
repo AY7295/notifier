@@ -13,15 +13,15 @@ var (
 	}
 	config = feishu.Config{
 		Lark: feishu.Lark{
-			ID:     "",
-			Secret: "",
+			AppId:     "",
+			AppSecret: "",
 		},
-		NeedNotifyInGroup: true,
+		GroupNotify: true,
 	}
 )
 
 func TestInit(t *testing.T) {
-	fsBuilder, err := feishu.NewNotifyBuilder(config)
+	fsBuilder, err := NewFeishuBuilder(config)
 	if err != nil {
 		t.Error(err)
 		return

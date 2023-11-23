@@ -37,19 +37,19 @@ func (b *builder) Build(level shared.Level) shared.Notifier {
 			return err
 		}
 
-		userIds, err = b.config.api.GetOpenIds(app.Mobiles)
+		userIds, err = b.config.api.getOpenIds(app.Mobiles)
 		if err != nil {
 			return err
 		}
 
-		if b.config.NeedNotifyInGroup {
-			chatIds, err = b.config.api.GetChatIds()
+		if b.config.GroupNotify {
+			chatIds, err = b.config.api.getChatIds()
 			if err != nil {
 				return err
 			}
 		}
 
-		return b.config.api.SendCard(
+		return b.config.api.sendCard(
 			newCard(getTemplate(level), app.Name, level.String(), info.Format(), builderAt(userIds...)),
 			userIds, chatIds...,
 		)

@@ -8,6 +8,7 @@ import (
 	"sync"
 )
 
+// Global is the only global hub instance
 var Global *hub
 
 func Init(app shared.App, opts ...Option) {
@@ -32,9 +33,10 @@ func (h *hub) Init(app shared.App, opts ...Option) {
 	})
 }
 
+// Notify : call all notifiers set for level
 func (h *hub) Notify(level shared.Level, info shared.Information) error {
 	if h.app == nil {
-		panic("notifier not init")
+		panic("notifier not init") // must init first
 	}
 	if reflect.ValueOf(info).IsNil() {
 		return errors.New("info must not be nil")
@@ -53,6 +55,7 @@ func (h *hub) Notify(level shared.Level, info shared.Information) error {
 	return errors.Join(errs...)
 }
 
+// WithNotifier : set notifiers for level
 func WithNotifier(level shared.Level, notifiers ...shared.Notifier) Option {
 	return func(h *hub) {
 		if len(notifiers) != 0 {

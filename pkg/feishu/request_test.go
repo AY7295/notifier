@@ -9,10 +9,10 @@ import (
 var (
 	config = &Config{
 		Lark: Lark{
-			ID:     "",
-			Secret: "",
+			AppId:     "",
+			AppSecret: "",
 		},
-		NeedNotifyInGroup: false,
+		GroupNotify: false,
 	}
 	app = &shared.App{
 		Name:    "TestApp",
@@ -41,7 +41,7 @@ func Test_api_GetToken(t *testing.T) {
 }
 
 func Test_api_GetChatIds(t *testing.T) {
-	chatIds, err := config.api.GetChatIds()
+	chatIds, err := config.api.getChatIds()
 	if err != nil {
 		t.Error(err)
 		return
@@ -50,7 +50,7 @@ func Test_api_GetChatIds(t *testing.T) {
 }
 
 func Test_api_GetOpenIds(t *testing.T) {
-	openIds, err := config.api.GetOpenIds(app.Mobiles)
+	openIds, err := config.api.getOpenIds(app.Mobiles)
 	if err != nil {
 		t.Error(err)
 		return
@@ -66,19 +66,19 @@ func Test_api_SendCard(t *testing.T) {
 		info    = shared.NewInformation("TestError", shared.WithErrors(errors.New("error1"), errors.New("error2")))
 	)
 
-	userIds, err = config.api.GetOpenIds(app.Mobiles)
+	userIds, err = config.api.getOpenIds(app.Mobiles)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	chatIds, err = config.api.GetChatIds()
+	chatIds, err = config.api.getChatIds()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	ss := info.Format()
 	t.Log(ss)
-	err = config.api.SendCard(
+	err = config.api.sendCard(
 		newCard(getTemplate(shared.Error), app.Name, shared.Error.String(), ss, builderAt(userIds...)),
 		userIds, chatIds...,
 	)

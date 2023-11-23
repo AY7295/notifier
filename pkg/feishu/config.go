@@ -7,15 +7,17 @@ import (
 type Config struct {
 	// Lark: the config of the feishu bot
 	Lark Lark
-	// NeedNotifyInGroup: will send the notification in the chat group where the bot is in
-	NeedNotifyInGroup bool
+	// GroupNotify: will send the notification in the chat group where the bot is in
+	GroupNotify bool
 	// api: the apis of feishu
 	api *api
 }
 
+// Lark : the app must have the ability of bot and must have the permission of "send message to user/group"
+// [https://open.feishu.cn] here you can create an app and config it
 type Lark struct {
-	ID     string `json:"app_id"`
-	Secret string `json:"app_secret"`
+	AppId     string `json:"app_id"`
+	AppSecret string `json:"app_secret"`
 }
 
 func (c *Config) Init() error {
